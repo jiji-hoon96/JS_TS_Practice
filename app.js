@@ -5,6 +5,7 @@ const NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 const CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json";
 const store = {
   currentPage: 1,
+  feeds: [],
 };
 
 function getData(url) {
@@ -14,8 +15,15 @@ function getData(url) {
   return JSON.parse(ajax.response); //newsFeed=> 상수는 ajax.response값을 json형태로(보기쉽게) 저장
 }
 
+function makeFeeds(feeds) {
+  for (let i = 0; i < feeds.length; i++) {
+    feeds[i].read = false;
+  }
+  return feeds;
+}
+
 function newsFeed() {
-  const newsFeed = getData(NEWS_URL);
+  let newsFeed = store.feeds;
   const newsList = [];
   let template = `
     <div class='bg-gray-600 min-h-screen'>
@@ -42,15 +50,23 @@ function newsFeed() {
     </div>
   `;
 
+  if (newsFeed.length === 0) {
+    newsFeed = store.feeds = makeFeeds(getData(NEWS_URL));
+  }
+
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push(`
-      <div class="p-6 bg-white mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+      <div class="p-6 ${
+        newsFeed[i].read ? "bg-red-500" : "bg-white"
+      } mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
         <div class="flex">
           <div class="flex-auto">
             <a href="#/show/${newsFeed[i].id}">${newsFeed[i].title}</a>  
           </div>
           <div class="text-center text-sm">
-            <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${newsFeed[i].comments_count}</div>
+            <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${
+              newsFeed[i].comments_count
+            }</div>
           </div>
         </div>
         <div class="flex mt-3">
@@ -106,6 +122,13 @@ function newsDetail() {
         </div>
       </div>
     `;
+
+  for (let i = 0; i < store.feeds.length; i++) {
+    if (store.feeds[i].id === Number(id)) {
+      store.feeds[i].read = true;
+      break;
+    }
+  }
 
   function makeComment(comments, called = 0) {
     const commentString = [];
