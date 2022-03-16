@@ -128,27 +128,40 @@ function getData(url) {
   //Get은 method / 그다음 주소는 가져올 url / 마지막은 비동기를 사용할지 boolean으로 변환
   ajax.open("GET", url, false);
   ajax.send();
-  return JSON.parse(ajax.response); //newsFeed란 상수는 ajax.response값을 json형태로(보기쉽게) 저장
+  return JSON.parse(ajax.response); //newsFeed=> 상수는 ajax.response값을 json형태로(보기쉽게) 저장
 }
 
-var newsFeed = getData(NEWS_URL);
-var ul = document.createElement("ul");
-window.addEventListener("hashchange", function () {
+function newsFeed() {
+  var newsFeed = getData(NEWS_URL);
+  var newsList = [];
+  newsList.push("<ul>");
+
+  for (var i = 0; i < newsFeed.length; i++) {
+    newsList.push("\n      <li>\n          <a href=\"#".concat(newsFeed[i].id, "\">\n              ").concat(newsFeed[i].title, "(").concat(newsFeed[i].comments_count, ")\n          </a>\n      </li>\n      "));
+  }
+
+  newsList.push("</ul>");
+  container.innerHTML = newsList.join("");
+}
+
+function newsDetail() {
   var id = location.hash.substring(1);
   var newsContent = getData(CONTENT_URL.replace("@id", id));
-  var title = document.createElement("h1");
-  title.innerHTML = newsContent.title;
-  content.appendChild(title);
-});
-
-for (var i = 0; i < newsFeed.length; i++) {
-  var div = document.createElement("div");
-  div.innerHTML = "\n    <li>\n        <a href=\"#".concat(newsFeed[i].id, "\">\n            ").concat(newsFeed[i].title, "(").concat(newsFeed[i].comments_count, ")\n        </a>\n    </li>\n    ");
-  ul.appendChild(div.firstElementChild);
+  container.innerHTML = "\n      <h1>".concat(newsContent.title, "</h1>\n      <div>\n          <a href=\"#\">\uBAA9\uB85D\uC73C\uB85C</a>\n      </div>\n    ");
 }
 
-container.appendChild(ul);
-container.appendChild(content);
+function router() {
+  var routePath = location.hash; //location.hash에 #만 있을경우는 비어있다고 봄
+
+  if (routePath === "") {
+    newsFeed();
+  } else {
+    newsDetail();
+  }
+}
+
+window.addEventListener("hashchange", router);
+router();
 },{}],"C:/Users/User/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
