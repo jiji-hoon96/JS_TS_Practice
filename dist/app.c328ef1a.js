@@ -123,27 +123,28 @@ var ajax = new XMLHttpRequest();
 var content = document.createElement("div");
 var NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 var CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json";
-ajax.open("GET", NEWS_URL, false); //Get은 method / 그다음 주소는 가져올 url / 마지막은 비동기를 사용할지 boolean으로 변환
 
-ajax.send();
-var newsFeed = JSON.parse(ajax.response); //newsFeed란 상수는 ajax.response값을 json형태로(보기쉽게) 저장
+function getData(url) {
+  //Get은 method / 그다음 주소는 가져올 url / 마지막은 비동기를 사용할지 boolean으로 변환
+  ajax.open("GET", url, false);
+  ajax.send();
+  return JSON.parse(ajax.response); //newsFeed란 상수는 ajax.response값을 json형태로(보기쉽게) 저장
+}
 
+var newsFeed = getData(NEWS_URL);
 var ul = document.createElement("ul");
 window.addEventListener("hashchange", function () {
   var id = location.hash.substring(1);
-  ajax.open("GET", CONTENT_URL.replace("@id", id), false);
-  ajax.send();
-  var newsContent = JSON.parse(ajax.response);
+  var newsContent = getData(CONTENT_URL.replace("@id", id));
   var title = document.createElement("h1");
   title.innerHTML = newsContent.title;
   content.appendChild(title);
 });
 
 for (var i = 0; i < newsFeed.length; i++) {
-  var li = document.createElement("li");
-  var a = document.createElement("a");
-  ul.appendChild(li).appendChild(a).innerHTML = "".concat(newsFeed[i].title, "(").concat(newsFeed[i].comments_count, ")");
-  a.href = "#".concat(newsFeed[i].id);
+  var div = document.createElement("div");
+  div.innerHTML = "\n    <li>\n        <a href=\"#".concat(newsFeed[i].id, "\">\n            ").concat(newsFeed[i].title, "(").concat(newsFeed[i].comments_count, ")\n        </a>\n    </li>\n    ");
+  ul.appendChild(div.firstElementChild);
 }
 
 container.appendChild(ul);
