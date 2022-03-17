@@ -37,12 +37,40 @@ const store: Store = {
   feeds: [],
 };
 
+class Api {
+  url: string;
+  ajax: XMLHttpRequest;
+  constructor(url: string) {
+    this.url = url;
+    this.ajax = new XMLHttpRequest();
+  }
+  protected getRequest<AjaxResponse>(): AjaxResponse {
+    //Get은 method / 그다음 주소는 가져올 url / 마지막은 비동기를 사용할지 boolean으로 변환
+    this.ajax.open("GET", this.url, false);
+    this.ajax.send();
+    return JSON.parse(this.ajax.response); //newsFeed=> 상수는 ajax.response값을 json형태로(보기쉽게) 저장
+  }
+}
+
+class NewsFeedApi extends Api {
+  getData(): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>();
+  }
+}
+
+class NewsDetailApi extends Api {
+  getData(): NewsDetail {
+    return this.getRequest<NewsDetail>();
+  }
+}
+
+/*
 function getData<AjaxResponse>(url: string): AjaxResponse {
-  //Get은 method / 그다음 주소는 가져올 url / 마지막은 비동기를 사용할지 boolean으로 변환
   ajax.open("GET", url, false);
   ajax.send();
-  return JSON.parse(ajax.response); //newsFeed=> 상수는 ajax.response값을 json형태로(보기쉽게) 저장
+  return JSON.parse(ajax.response);
 }
+*/
 
 function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
   for (let i = 0; i < feeds.length; i++) {
@@ -60,6 +88,7 @@ function updateView(html: string): void {
 }
 
 function newsFeed(): void {
+  const api = new NewsFeedApi(NEWS_URL);
   let newsFeed: NewsFeed[] = store.feeds;
   const newsList = [];
   let template = `
@@ -88,7 +117,7 @@ function newsFeed(): void {
   `;
 
   if (newsFeed.length === 0) {
-    newsFeed = store.feeds = makeFeeds(getData<NewsFeed[]>(NEWS_URL));
+    newsFeed = store.feeds = makeFeeds(api.getData());
   }
 
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
@@ -130,7 +159,8 @@ function newsFeed(): void {
 
 function newsDetail(): void {
   const id = location.hash.substring(7);
-  const newsContent = getData<NewsDetail>(CONTENT_URL.replace("@id", id));
+  const api = new NewsDetailApi(CONTENT_URL.replace("@id", id));
+  const newsContent = api.getData();
   let template = `
       <div class="bg-gray-600 min-h-screen pb-8">
         <div class="bg-white text-xl">
